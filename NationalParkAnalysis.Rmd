@@ -1,0 +1,453 @@
+---
+title: "Katie Monroe Data Mining Project Final Report"
+author: "Katie Monroe"
+date: "11/28/2021"
+output: word_document
+---
+
+```{r get-labels, echo = FALSE}
+labs = knitr::all_labels()
+labs = setdiff(labs, c("setup", "get-labels"))
+```
+
+```{r all-code, ref.label=labs, eval=FALSE}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(ggpubr)
+library(GGally)
+library(dplyr)
+library(tinytex)
+library(dendextend)
+library(factoextra)
+library(dplyr)
+library(clustMixType)
+library(cluster)
+library(Rtsne)
+library(knitr)
+library(FactoMineR)
+library(ggbiplot)
+library(gridExtra)
+library(htmlTable)
+library(kableExtra)
+library(magick)
+library(data.table)
+```
+
+
+```{r}
+#Milestone 1
+#Read in data
+data <- read.csv("nationalparkdata.csv",
+         sep = ",", header = TRUE)
+
+#Amount in Each state colored by region
+dataregion1 <- subset(data, data$region == "SER")
+
+regplot1 <- ggplot(dataregion1, aes(x = factor(state))) +
+  geom_bar(position = "dodge",fill="dodgerblue4") +
+  theme(axis.text=element_text(size=2)) +
+  theme_classic() +
+  xlab("states")
+
+dataregion2 <- subset(data, data$region == "PWR")
+
+regplot2 <- ggplot(dataregion2, aes(x = factor(state))) +
+  geom_bar(position = "dodge", fill="dodgerblue4") +
+  theme(axis.text=element_text(size=6)) +
+  theme_classic() +
+  xlab("states")
+
+dataregion3 <- subset(data, data$region == "NER")
+
+regplot3 <- ggplot(dataregion3, aes(x = factor(state))) +
+  geom_bar(position = "dodge",fill="dodgerblue4") +
+  theme(axis.text=element_text(size=2)) +
+  theme_classic() +
+  xlab("states")
+
+dataregion4 <- subset(data, data$region == "NCR")
+
+regplot4 <- ggplot(dataregion4, aes(x = factor(state))) +
+  geom_bar(position = "dodge",fill="dodgerblue4") +
+  theme(axis.text=element_text(size=2)) +
+  theme_classic() +
+  xlab("states")
+
+dataregion5 <- subset(data, data$region == "MWR")
+
+regplot5 <- ggplot(dataregion5, aes(x = factor(state))) +
+  geom_bar(position = "dodge",fill="dodgerblue4") +
+  theme(axis.text=element_text(size=2)) +
+  theme_classic() +
+  xlab("states")
+
+dataregion6 <- subset(data, data$region == "IMR")
+
+regplot6 <- ggplot(dataregion6, aes(x = factor(state))) +
+  geom_bar(position = "dodge",fill="dodgerblue4") +
+  theme(axis.text=element_text(size=2)) +
+  theme_classic() +
+  xlab("states")
+
+dataregion7 <- subset(data, data$region == "AKR")
+
+regplot7 <- ggplot(dataregion7, aes(x = factor(state))) +
+  geom_bar(position = "dodge",fill="dodgerblue4") +
+  theme(axis.text=element_text(size=2)) +
+  theme_classic() +
+  xlab("states")
+
+ggarrange(regplot1, regplot2,
+                    labels = c("SER", "PWR"),
+                    ncol = 1, nrow = 2)
+
+ggarrange(regplot3, regplot4,
+                    labels = c("NER", "NCR"),
+                    ncol = 1, nrow = 2)
+ggarrange(regplot5, regplot6, regplot7,
+                    labels = c("MWR", "IMR", "AKR"),
+                    ncol = 1, nrow = 3)
+
+
+#Which regions are in peak season?
+dataseason1 <- subset(data, data$peak_season_may_sept == "y")
+
+seasonplot1 <- ggplot(dataseason1, aes(x = factor(dataseason1$state))) +
+  geom_bar(position = "dodge",fill="lightblue2") +
+  theme(axis.text=element_text(size=0.05)) +
+  theme_classic() +
+  coord_flip() +
+  xlab("Peak Season May-Speptember: Yes")
+
+dataseason2 <- subset(data, data$peak_season_may_sept == "n")
+
+seasonplot2 <- ggplot(dataseason2, aes(x = factor(dataseason2$state))) +
+  geom_bar(position = "dodge",fill="lightblue2") +
+  theme(axis.text=element_text(size=0.05)) +
+  theme_classic() +
+  coord_flip() +
+  xlab("Peak Season May-Speptember: No")
+
+dataseason3 <- subset(data, data$peak_season_may_sept == "kinda")
+
+seasonplot3 <- ggplot(dataseason3, aes(x = factor(dataseason3$state))) +
+  geom_bar(position = "dodge",fill="lightblue2") +
+  theme(axis.text=element_text(size=0.05)) +
+  theme_classic() +
+  coord_flip() +
+  xlab("Peak Season May-Speptember: Kinda")
+
+dataseason4 <- subset(data, data$peak_season_may_sept == "uniform")
+
+seasonplot4 <- ggplot(dataseason4, aes(x = factor(dataseason4$state))) +
+  geom_bar(position = "dodge",fill="lightblue2") +
+  theme(axis.text=element_text(size=0.05)) +
+  theme_classic() +
+  coord_flip() +
+  xlab("Peak Season May-Speptember: Uniform")
+
+dataseason5 <- subset(data, is.na(data$peak_season_may_sept))
+
+seasonplot5 <- ggplot(dataseason5, aes(x = factor(dataseason5$state))) +
+  geom_bar(position = "dodge",fill="lightblue2") +
+  theme(axis.text=element_text(size=0.05)) +
+  theme_classic() +
+  coord_flip() +
+  xlab("Peak Season May-Speptember: NA")
+
+ggarrange(seasonplot1, seasonplot2, seasonplot3,
+                    labels = c("Yes", "No", "Kinda"),
+                    ncol = 3, nrow = 1)
+
+ggarrange(seasonplot4, seasonplot5,
+                    labels = c("Uniform", "N/A"),
+                    ncol = 2, nrow = 1)
+
+### or without is being subset by state
+ggplot(data, aes(x = factor(data$peak_season_may_sept))) +
+  geom_bar(fill="lightblue3") +
+  theme(axis.text=element_text(size=0.05)) +
+  theme_classic() +
+  xlab("Peak Season May-Speptember")
+
+#How many parks have a border ocean?
+ggplot(data, aes(x = factor(data$border_ocean))) +
+  geom_bar(fill="lightblue4") +
+  theme(axis.text=element_text(size=0.05)) +
+  theme_classic() +
+  xlab("Border Ocean")
+
+#Latitude and longitude scatterplot
+ggplot(data, aes(x=long, y=lat)) + 
+  geom_point( color="steelblue4") +
+  theme_classic()
+
+
+#Which regions have the most visits
+ggplot(data, aes(x=visits_2018)) + 
+ geom_histogram(aes(y=..density..), fill="steelblue3")+
+ theme_classic()
+
+#average min/Max elevation by region
+ggplot(data, aes(x=elevation_max, y=data$elevation_min)) + 
+  geom_point( color="steelblue4") +
+  theme_classic()+
+  geom_smooth(method=lm , color="peachpuff4", se=FALSE)
+
+#Average acres by region 
+ggplot(data, aes(x=gross_area_acres)) + 
+ geom_histogram(aes(y=..density..), fill="steelblue2")+
+ theme_classic()
+
+#average elevation relief by region 
+ggplot(data, aes(x=elevation_relief)) + 
+ geom_histogram(aes(y=..density..),  fill="steelblue2")+
+ theme_classic()
+
+
+###
+numdata <-select(data, c("visits_2018", "NPS_fee_acres", "gross_area_acres", "long", "lat", "elevation_max", "elevation_relief", "elevation_min", "elevation_min_edit"))
+
+mean(na.omit(numdata[1]))
+
+ggpairs(numdata, title="correlogram of numerical data") 
+
+nummean <- c(mean(na.omit(data$visits_2018)),mean(na.omit(data$NPS_fee_acres)),mean(na.omit(data$gross_area_acres)),mean(na.omit(data$long)),mean(na.omit(data$lat)),mean(na.omit(data$elevation_max)),mean(na.omit(data$elevation_relief)),mean(na.omit(data$elevation_min)),mean(na.omit(data$elevation_min_edit)))
+
+numsd <- c(sd(na.omit(data$visits_2018)),sd(na.omit(data$NPS_fee_acres)),sd(na.omit(data$gross_area_acres)),sd(na.omit(data$long)),sd(na.omit(data$lat)),sd(na.omit(data$elevation_max)),sd(na.omit(data$elevation_relief)),sd(na.omit(data$elevation_min)),sd(na.omit(data$elevation_min_edit)))
+
+nummax <- c(max(na.omit(data$visits_2018)),max(na.omit(data$NPS_fee_acres)),max(na.omit(data$gross_area_acres)),max(na.omit(data$long)),max(na.omit(data$lat)),max(na.omit(data$elevation_max)),max(na.omit(data$elevation_relief)),max(na.omit(data$elevation_min)),max(na.omit(data$elevation_min_edit)))
+
+nummin <- c(min(na.omit(data$visits_2018)),min(na.omit(data$NPS_fee_acres)),min(na.omit(data$gross_area_acres)),min(na.omit(data$long)),min(na.omit(data$lat)),min(na.omit(data$elevation_max)),min(na.omit(data$elevation_relief)),min(na.omit(data$elevation_min)),min(na.omit(data$elevation_min_edit)))
+
+mean(na.omit(data$lat))
+sd(na.omit(data$lat))
+
+df1 <- data.frame(mean = nummean, sd = numsd, max = nummax, min = nummin)
+
+head(df1)
+```
+
+```{r, include = F}
+#Milestone 2
+#This reads the data and omit the na values
+data <- read.csv("nationalparkdata.csv",
+         sep = ",", header = TRUE)
+data <- na.omit(data)
+
+#This turns the character columns into factors 
+data[sapply(data, is.character)]<-lapply(data[sapply(data,is.character)],as.factor)
+
+#This computes the gower distance
+gower_dist <- daisy(data,
+                    metric = "gower",
+                    type = list(logratio = 3))
+
+#Summary function to check data
+summary(gower_dist) 
+
+#Matrix of gower distance
+gower_mat <- as.matrix(gower_dist)
+
+#Gets min distances
+data[which(gower_mat == min(gower_mat[gower_mat != min(gower_mat)]),arr.ind = TRUE)[1, ], ]
+
+#Gets max distances
+data[which(gower_mat == max(gower_mat[gower_mat != max(gower_mat)]),arr.ind = TRUE)[1, ], ]
+
+#This creates an NA vector then computes sil width
+sil_width <- c(NA)
+for(i in 2:10){
+  pam_fit <- pam(gower_dist,
+                 diss = TRUE,
+                 k = i)
+  
+  sil_width[i] <- pam_fit$silinfo$avg.width
+}
+
+#This creates the sil plot to choose clusters
+plot(1:10, sil_width,
+     xlab = "Number of clusters",
+     ylab = "Silhouette Width",
+     main = "Sil Plot")
+lines(1:10, sil_width)
+
+#This does the fit then calculates the results
+pam_fit <- pam(gower_dist, diss = TRUE, k = 3)
+pam_results <- data %>%
+  mutate(cluster = pam_fit$clustering) %>%
+  group_by(cluster) %>%
+  do(the_summary = summary(.))
+pam_results$the_summary
+
+#This creates the objective of the distance
+tsne_obj <- Rtsne(gower_dist, is_distance = TRUE)
+tsne_data <- tsne_obj$Y %>%
+  data.frame() %>%
+  setNames(c("X", "Y")) %>%
+  mutate(cluster = factor(pam_fit$clustering))
+
+#This subsets the clusters so that the centers can be included
+clust1 <- subset(tsne_data, tsne_data$cluster ==1)
+clust2 <- subset(tsne_data, tsne_data$cluster ==2)
+clust3 <- subset(tsne_data, tsne_data$cluster ==3)
+
+#This plots the clusters
+ggplot(aes(x = X, y = Y), data = tsne_data) +
+  geom_point(aes(color = cluster)) +
+  geom_point(aes(x=mean(clust1$X),y=mean(clust1$Y)),colour="darkred", shape=18, size=5)+
+  geom_point(aes(x=mean(clust2$X),y=mean(clust2$Y)),colour="darkred", shape=18, size=5)+
+  geom_point(aes(x=mean(clust3$X),y=mean(clust3$Y)),colour="darkred", shape=18, size=5)+
+  theme_classic() +
+  scale_color_manual(breaks = c("1", "2", "3"), 
+                       values=c("cyan4", "steelblue3", "deepskyblue1"))+
+  ggtitle("PAM Clustering Results")
+
+#This is the code to access the results
+kable(pam_fit$clusinfo, format = "html")
+pam_fit$medoids
+```
+
+
+```{r, include = F}
+#Milestone 2
+#this reads in the data again and omits the NA values
+data <- read.csv("nationalparkdata.csv",
+         sep = ",", header = TRUE)
+data <- na.omit(data)
+
+#this finds the euclidean distance 
+dist_mat1 <- dist(data, method = 'euclidean')
+
+#This finds the average 
+hclust_avg1 <- hclust(dist_mat1, method = 'average')
+
+#This creates the first dendogram
+avg_dend_obj1 <- as.dendrogram(hclust_avg1)
+
+#This plots the colored dendogram
+avg_col_dend1 <- color_branches(avg_dend_obj1, h = 3)
+plot(avg_col_dend1)
+
+#This drops data that may be repetitive or not as useful
+drops <- c("park_name","area_name.1","area_name.2", "code","elevation_relief", "elevation_min_edit", "state", "gross_area_acres", "lower48", "NPS_fee_acres")
+data2 <- data[ , !(names(data) %in% drops)]
+data2 <- data2%>%mutate_if(is.numeric,scale)
+
+#then the distance is recreated
+dist_mat2 <- dist(data2, method = 'euclidean')
+
+#The average is recreated
+hclust_avg2 <- hclust(dist_mat2, method = 'average')
+
+#the dendogram is replotted
+avg_dend_obj2 <- as.dendrogram(hclust_avg2)
+avg_col_dend2 <- color_branches(avg_dend_obj2, h = 3)
+plot(avg_col_dend2)
+
+```
+
+```{r, include = F}
+#Milestone 3
+#This reads the data and omit the na values
+data <- read.csv("nationalparkdata.csv",
+         sep = ",", header = TRUE)
+data <- na.omit(data)
+
+#this removes all the character columns
+data1 <- data[,-which(sapply(data, class) == "character")]
+
+#this scales the data
+scaled.df <- scale(data1)
+
+#This genrates the pca
+my.pca <- prcomp(scaled.df, retx=TRUE)
+summary(my.pca)
+
+#this plot shows how many principle components to pick
+plot(my.pca, type = "line")
+
+#this generates the plot
+plot1<-ggbiplot(my.pca,choices=c(1,2),
+                labels=rownames(scaled.df), #show point labels
+                var.axes=TRUE, # Display axes
+                ellipse = FALSE, # Don't display ellipse
+                obs.scale=1) + # Keep original scaling
+  ggtitle("Data Projected on PC1 and PC2 ")+
+  theme_classic()
+
+#this creates a better version of the pca graph
+clust <- as.factor(kmeans(scaled.df, centers=3)$cluster)
+
+length(clust[clust == 1])
+plot2<-ggbiplot(my.pca,choices=c(1,2),
+                groups = clust,
+                labels=rownames(scaled.df),
+                var.axes=TRUE,
+                ellipse = FALSE,
+                obs.scale=1) +
+  ggtitle("Data Projected on PC1 and PC2 ")+
+  theme_classic()
+
+#This generates the eigenvalues and principal components
+my.pca$rotation
+
+rot <- (data.frame(my.pca$rotation[,1:3])) 
+
+df <- (data.frame(my.pca$x[1:10,1:3])) 
+
+#this generates the centers
+my.pca$center
+
+cen <- (data.frame(my.pca$center)) 
+
+#This converts character data to factor data
+data[sapply(data, is.character)]<-lapply(data[sapply(data,is.character)],as.factor)
+
+#This converts factor data to numeric
+data2 <- data %>% 
+  mutate_if(is.factor, as.numeric)
+
+#this rescales the data 
+scaled.df2 <- scale(data2)
+
+#this regenerates the PCA
+my.pca2 <- prcomp(data2, retx=TRUE)
+
+#this shows the elbow gaph of how many principle components to pick
+plot(my.pca2, type = "line")
+
+#This generates the plot
+plot3<-ggbiplot(my.pca2,choices=c(1,2),
+                labels=rownames(scaled.df2), #show point labels
+                var.axes=TRUE, # Display axes
+                ellipse = FALSE, # Don't display ellipse
+                obs.scale=1) + # Keep original scaling
+  ggtitle("Data Projected on PC1 and PC2 ")+
+  theme_classic()
+
+#This generates the colored plot
+clust2 <- as.factor(kmeans(data2, centers=3)$cluster)
+
+length(clust2[clust2 ==3])
+plot4<-ggbiplot(my.pca2,choices=c(1,2),
+                groups = clust2,
+                labels=rownames(scaled.df2),
+                var.axes=TRUE,
+                ellipse = FALSE,
+                obs.scale=1) +
+  ggtitle("Data Projected on PC1 and PC2 ")+
+  theme_classic()
+
+
+#This generates the eigenvalues and principal components
+my.pca2$rotation
+rot <- (data.frame(my.pca2$rotation[,1:3])) 
+my.pca2$x
+df <- (data.frame(my.pca2$x[1:10,1:3])) 
+cen <- (data.frame(my.pca2$center)) 
+
+```
